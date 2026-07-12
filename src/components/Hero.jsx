@@ -26,51 +26,42 @@ export default function Hero() {
     vid.muted = true
     vid.loop = false
     vid.playsInline = true
+    vid.controls = false
+    vid.removeAttribute('controls')
 
     let raf
-    let progress = 0
-    let speed = 0.0004
-    let lastTime = performance.now()
+    let playingForward = true
+    const REV_SPEED = 0.03
 
-    const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+    const startForward = () => {
+      playingForward = true
+      vid.play().catch(() => {})
+    }
 
-    const tick = (now) => {
-      const dt = now - lastTime
-      lastTime = now
-
-      if (!vid.paused) vid.pause()
-
-      progress += speed * dt
-
-      if (progress >= 1) {
-        progress = 1
-        speed = -Math.abs(speed)
-      } else if (progress <= 0) {
-        progress = 0
-        speed = Math.abs(speed)
+    const reverseTick = () => {
+      if (playingForward) return
+      if (vid.currentTime > 0.04) {
+        vid.currentTime -= REV_SPEED
+        raf = requestAnimationFrame(reverseTick)
+      } else {
+        vid.currentTime = 0
+        startForward()
       }
+    }
 
-      const rawT = speed > 0 ? progress : progress
-      const t = ease(rawT)
-
-      if (vid.duration) {
-        vid.currentTime = t * vid.duration
+    const onEnded = () => {
+      if (playingForward) {
+        playingForward = false
+        cancelAnimationFrame(raf)
+        raf = requestAnimationFrame(reverseTick)
       }
-
-      raf = requestAnimationFrame(tick)
     }
 
-    vid.onloadedmetadata = () => {
-      vid.currentTime = 0
-      raf = requestAnimationFrame(tick)
-    }
-
-    if (vid.readyState >= 1) {
-      vid.currentTime = 0
-      raf = requestAnimationFrame(tick)
-    }
+    vid.addEventListener('ended', onEnded)
+    startForward()
 
     return () => {
+      vid.removeEventListener('ended', onEnded)
       cancelAnimationFrame(raf)
     }
   }, [])
@@ -97,7 +88,10 @@ export default function Hero() {
             autoPlay
             muted
             playsInline
-            className="h-full w-full object-cover object-left"
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            className="h-full w-full object-cover object-left video-no-controls"
           >
             <source src={VIDEO_SRC} type="video/mp4" />
           </video>

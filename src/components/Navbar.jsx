@@ -45,11 +45,13 @@ export default function Navbar() {
           <a href="#pearls" className="transition-colors hover:text-rose">Jewelry</a>
           <a href="#decor" className="transition-colors hover:text-rose">Decor</a>
           <a href="#lingerie" className="transition-colors hover:text-rose">Lingerie</a>
-          <Link to="/track" className="transition-colors hover:text-rose">Track</Link>
         </div>
 
-        {/* Right: Cart + Admin */}
+        {/* Right: Track + Cart + Admin */}
         <div className="pointer-events-auto flex items-center gap-8">
+          <Link to="/track" className="hidden sm:inline text-white/60 hover:text-rose transition-colors font-syne text-[10px] uppercase tracking-[0.3em]">
+            Track
+          </Link>
           <button onClick={openCart} className="hidden sm:inline relative text-white/60 hover:text-rose transition-colors font-syne text-[10px] uppercase tracking-[0.3em]">
             Cart
             {cartCount > 0 && (

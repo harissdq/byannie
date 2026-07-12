@@ -326,6 +326,21 @@ select option {
   .no-print { display: none !important; }
 }
 
+.video-no-controls::-webkit-media-controls,
+.video-no-controls::-webkit-media-controls-panel,
+.video-no-controls::-webkit-media-controls-play-button,
+.video-no-controls::-webkit-media-controls-overlay-play-button,
+.video-no-controls::-webkit-media-controls-timeline,
+.video-no-controls::-webkit-media-controls-fullscreen-button,
+.video-no-controls::-webkit-media-controls-enclosure {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+.video-no-controls {
+  -webkit-appearance: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
