@@ -667,27 +667,19 @@ export function createApp() {
 }
 
 // ─── Standalone server (production) ─────────────────────
-const isMainModule = process.argv[1] && (
-  resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1]) ||
-  resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1] + '.js') ||
-  process.argv[1].endsWith('server.js')
-)
-
-if (isMainModule) {
-  initDirectories()
-  const app = createApp()
-  const DIST_DIR = join(__dirname, 'dist')
-  if (existsSync(DIST_DIR)) {
-    app.use(express.static(DIST_DIR))
-    app.get('*', (req, res) => {
-      if (!req.path.startsWith('/api')) {
-        res.sendFile(join(DIST_DIR, 'index.html'))
-      }
-    })
-    console.log('✓ Serving frontend from dist/')
-  }
-  const PORT = process.env.PORT || 3001
-  app.listen(PORT, () => {
-    console.log(`Annie server running on http://localhost:${PORT}`)
+initDirectories()
+const app = createApp()
+const DIST_DIR = join(__dirname, 'dist')
+if (existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR))
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(join(DIST_DIR, 'index.html'))
+    }
   })
+  console.log('✓ Serving frontend from dist/')
 }
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`✓ Annie server running on http://localhost:${PORT}`)
+})
