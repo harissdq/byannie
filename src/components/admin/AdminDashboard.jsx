@@ -32,6 +32,8 @@ import {
   fetchHeroImages,
   updateHeroImage,
   deleteHeroImage,
+  compressImage,
+  generateAutoSKU,
 } from '../../lib/store';
 
 const TABS = [
@@ -240,7 +242,11 @@ export default function AdminDashboard({ onLogout }) {
   const handleSaveProduct = async () => {
     const price = parseFloat(productForm.price);
     if (!productForm.name || isNaN(price)) return;
-    const productData = { ...productForm, price, stock: parseInt(productForm.stock) || 0 };
+    let sku = productForm.sku;
+    if (!sku && !editingProduct) {
+      sku = await generateAutoSKU(productForm.department, productForm.category);
+    }
+    const productData = { ...productForm, price, stock: parseInt(productForm.stock) || 0, sku: sku || productForm.sku };
     if (productForm.department !== 'jewelry') {
       delete productData.metal;
       delete productData.gemstone;
@@ -317,7 +323,7 @@ export default function AdminDashboard({ onLogout }) {
 
   const handleExportOrders = () => {
     const data = orders.map(o => ({
-      id: o.id, customer: o.customerName || 'N/A',
+      id: o.id, trackingCode: o.trackingCode || '', customer: o.customerName || 'N/A',
       email: o.email || '', phone: o.phone || '',
       date: o.createdAt || '', total: o.total || 0, status: o.status,
       items: (o.items || []).map(i => `${i.name} x${i.quantity}`).join('; '),
@@ -508,6 +514,7 @@ export default function AdminDashboard({ onLogout }) {
     if (search) {
       const q = search.toLowerCase();
       return (o.id || '').toLowerCase().includes(q) ||
+        (o.trackingCode || '').toLowerCase().includes(q) ||
         (o.customerName || o.customer?.name || '').toLowerCase().includes(q) ||
         (o.email || o.customer?.email || '').toLowerCase().includes(q);
     }
@@ -845,7 +852,8 @@ export default function AdminDashboard({ onLogout }) {
                                     reader.onerror = reject;
                                     reader.readAsDataURL(file);
                                   });
-                                  const url = await uploadImage(dataUrl, file.name.replace(/\.[^.]+$/, ''));
+                                  const compressed = await compressImage(dataUrl, 1080);
+                                  const url = await uploadImage(compressed, file.name.replace(/\.[^.]+$/, ''));
                                   setProductForm(prev => ({ ...prev, image: url }));
                                   setImagePreview(url);
                                 } catch (err) {
@@ -1102,7 +1110,7 @@ export default function AdminDashboard({ onLogout }) {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-white/5">
-                          {['Order ID', 'Customer', 'Date', 'Total', 'Status', 'Actions'].map(h => (
+                          {['Order ID', 'Tracking', 'Customer', 'Date', 'Total', 'Status', 'Actions'].map(h => (
                             <th key={h} className="text-left px-5 py-3.5 text-[10px] tracking-[0.2em] uppercase text-white/50/50 font-medium">{h}</th>
                           ))}
                         </tr>
@@ -1111,6 +1119,7 @@ export default function AdminDashboard({ onLogout }) {
                         {filteredOrders.map(order => (
                           <tr key={order.id} className="border-b border-rose/6 hover:bg-white/5 transition-colors">
                             <td className="px-5 py-4 text-sm text-gold font-mono">{order.id}</td>
+                            <td className="px-5 py-4 text-xs text-rose/70 font-mono tracking-wider">{order.trackingCode || '-'}</td>
                             <td className="px-5 py-4">
                               <p className="text-sm text-white">{order.customerName || order.customer?.name || 'N/A'}</p>
                                <p className="text-[11px] text-white/50/50">{order.email || order.customerEmail || ''}</p>
@@ -1147,7 +1156,7 @@ export default function AdminDashboard({ onLogout }) {
                           </tr>
                         ))}
                         {filteredOrders.length === 0 && (
-                          <tr><td colSpan={6} className="px-5 py-12 text-center text-white/50/50 text-sm">No orders found</td></tr>
+                          <tr><td colSpan={7} className="px-5 py-12 text-center text-white/50/50 text-sm">No orders found</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -1185,7 +1194,9 @@ export default function AdminDashboard({ onLogout }) {
                           <p className="text-sm text-white/50">{order.email || ''}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] tracking-[0.2em] uppercase text-white/50/50 mb-2">Ship To</p>
+                          <p className="text-[10px] tracking-[0.2em] uppercase text-white/50/50 mb-2">Tracking Code</p>
+                          <p className="text-sm text-rose font-mono tracking-wider">{order.trackingCode || 'N/A'}</p>
+                          <p className="text-[10px] text-white/40 mt-1">Ship To:</p>
                           {order.address ? (
                             <p className="text-sm text-white/50">
                               {order.address.line1}, {order.address.city}, {order.address.state} - {order.address.zip}
@@ -1577,7 +1588,8 @@ export default function AdminDashboard({ onLogout }) {
                             if (!file) return;
                             const reader = new FileReader();
                             reader.onload = async () => {
-                              const url = await uploadImage(reader.result, `logo-${Date.now()}`);
+                              const compressed = await compressImage(reader.result, 1080);
+                              const url = await uploadImage(compressed, `logo-${Date.now()}`);
                               setSettings({ ...settings, logo: url });
                             };
                             reader.readAsDataURL(file);
@@ -1761,7 +1773,8 @@ export default function AdminDashboard({ onLogout }) {
                                 try {
                                   const reader = new FileReader();
                                   reader.onload = async () => {
-                                    const url = await uploadImage(reader.result, `hero-${dept}-${Date.now()}`);
+                                    const compressed = await compressImage(reader.result, 1080);
+                                    const url = await uploadImage(compressed, `hero-${dept}-${Date.now()}`);
                                     await updateHeroImage(dept, url);
                                     setHeroImages(prev => ({ ...prev, [dept]: url }));
                                     setHeroUploading(prev => ({ ...prev, [dept]: false }));

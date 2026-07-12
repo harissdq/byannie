@@ -226,6 +226,33 @@ export function createApp() {
     res.json({ ok: true, message: 'Password updated successfully' })
   })
 
+  // ─── Auto-SKU generation ──────────────────────────────
+  const DEPT_PREFIXES = { jewelry: 'JW', decor: 'DC', lingerie: 'LG' }
+  const CAT_PREFIXES = {
+    'Necklace Sets': 'NS', 'Ear Tops': 'ET', 'Rings': 'RG', 'Bangles': 'BG',
+    'Nose Pins & Tikka': 'NP', 'Hand Jewelry': 'HJ', 'Payal & Foot': 'PF',
+    'Candles & Holders': 'CH', 'Lighting': 'LT', 'Vases': 'VS', 'Textiles': 'TX',
+    'Wall Art': 'WA', 'Mirrors': 'MR', 'Figurines': 'FG',
+    'Chemises': 'CH', 'Bralettes': 'BR', 'Robes': 'RB', 'Bodysuits': 'BD',
+    'Sets': 'ST', 'Sleepwear': 'SL', 'Nightwear': 'NW', 'Accessories': 'AC',
+  }
+
+  app.get('/api/products/auto-sku', auth, (req, res) => {
+    const { department, category } = req.query
+    const products = readJSON('products')
+    const deptCode = DEPT_PREFIXES[department] || 'XX'
+    const catCode = CAT_PREFIXES[category] || 'OT'
+    const prefix = `ANN-${deptCode}-${catCode}-`
+    const existing = products
+      .map(p => p.sku)
+      .filter(s => s && s.startsWith(prefix))
+      .map(s => parseInt(s.replace(prefix, ''), 10))
+      .filter(n => !isNaN(n))
+    const next = (existing.length > 0 ? Math.max(...existing) : 0) + 1
+    const sku = `${prefix}${String(next).padStart(3, '0')}`
+    res.json({ sku })
+  })
+
   // ─── Products ─────────────────────────────────────────
   app.get('/api/products', (req, res) => res.json(readJSON('products')))
   app.get('/api/products/:id', (req, res) => {
@@ -262,9 +289,39 @@ export function createApp() {
   // ─── Orders ───────────────────────────────────────────
   app.get('/api/orders', auth, (req, res) => res.json(readJSON('orders')))
 
+  // ─── Public Order Tracking ─────────────────────────────
+  app.get('/api/track/:code', (req, res) => {
+    const orders = readJSON('orders')
+    const order = orders.find(o => (o.trackingCode || '').toUpperCase() === req.params.code.toUpperCase())
+    if (!order) return res.status(404).json({ error: 'Order not found' })
+    res.json({
+      trackingCode: order.trackingCode,
+      status: order.status,
+      customerName: order.customerName,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    })
+  })
+
+  // ─── Generate unique tracking code ─────────────────────
+  function generateTrackingCode(existingOrders) {
+    let code
+    let attempts = 0
+    do {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+      code = ''
+      for (let i = 0; i < 8; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)]
+      }
+      attempts++
+    } while (existingOrders.some(o => o.trackingCode === code) && attempts < 100)
+    return code
+  }
+
   app.post('/api/orders', (req, res) => {
     const data = readJSON('orders')
-    const order = { id: `ord-${Date.now()}`, ...req.body, status: 'pending', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    const trackingCode = generateTrackingCode(data)
+    const order = { id: `ord-${Date.now()}`, trackingCode, ...req.body, status: 'pending', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     data.unshift(order)
     writeJSON('orders', data)
 

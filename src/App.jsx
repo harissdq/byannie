@@ -9,6 +9,7 @@ import StoreContent from './components/StoreContent'
 import ProductDetail from './components/ProductDetail'
 import CartDrawer from './components/CartDrawer'
 import Checkout from './components/Checkout'
+import Tracking from './components/Tracking'
 import Footer from './components/Footer'
 import Catalog from './components/Catalog'
 import AdminLogin from './components/admin/AdminLogin'
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="/shop" element={<Catalog />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/track" element={<Tracking />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

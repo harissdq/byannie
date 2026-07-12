@@ -45,6 +45,7 @@ export default function Navbar() {
           <a href="#pearls" className="transition-colors hover:text-rose">Jewelry</a>
           <a href="#decor" className="transition-colors hover:text-rose">Decor</a>
           <a href="#lingerie" className="transition-colors hover:text-rose">Lingerie</a>
+          <Link to="/track" className="transition-colors hover:text-rose">Track</Link>
         </div>
 
         {/* Right: Cart + Admin */}
@@ -97,6 +98,9 @@ export default function Navbar() {
                 <a href="#lingerie" onClick={() => setMobileMenu(false)} className="block py-3 text-sm font-syne uppercase tracking-[0.2em] text-white/70 hover:text-rose transition-colors">
                   Lingerie
                 </a>
+                <Link to="/track" onClick={() => setMobileMenu(false)} className="block py-3 text-sm font-syne uppercase tracking-[0.2em] text-white/70 hover:text-rose transition-colors">
+                  Track Order
+                </Link>
                 <div className="border-t border-white/10 pt-4 mt-4">
                   <button onClick={() => { openCart(); setMobileMenu(false) }} className="block py-3 text-sm font-syne uppercase tracking-[0.2em] text-white/70 hover:text-rose transition-colors w-full text-left">
                     Cart {cartCount > 0 && `(${cartCount})`}

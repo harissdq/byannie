@@ -27,6 +27,7 @@ export default function Checkout() {
   const [selectedPaymentInfo, setSelectedPaymentInfo] = useState(null)
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', address: '', city: '', province: 'Punjab', zip: '', paymentMethod: '' })
   const [errors, setErrors] = useState({})
+  const [orderResult, setOrderResult] = useState(null)
 
   useEffect(() => { const unsub = on('cart-updated', () => setCart(getCart())); return unsub }, [])
   useEffect(() => { const handler = () => setSettings(getSettings()); window.addEventListener('annie:settings-updated', handler); return () => window.removeEventListener('annie:settings-updated', handler) }, [])
@@ -65,12 +66,14 @@ export default function Checkout() {
     setSubmitting(true)
     await new Promise(r => setTimeout(r, 1500))
     try {
-      await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerName: form.fullName, email: form.email || 'N/A', phone: form.phone,
           items: cart.map(i => ({ productId: i.productId, name: i.name, quantity: i.quantity, price: i.price, variant: i.variant })),
           total: grandTotal, status: 'pending', address: { line1: form.address, city: form.city, state: form.province, zip: form.zip || 'N/A', country: 'Pakistan' },
           paymentMethod: PAYMENT_METHODS.find(m => m.id === form.paymentMethod)?.name || form.paymentMethod
         }) })
+      const orderData = await res.json()
+      setOrderResult(orderData)
       fetchOrders()
     } catch (err) { console.error(err) }
     clearCart(); setCompleted(true); setSubmitting(false)
@@ -89,9 +92,19 @@ export default function Checkout() {
         </motion.div>
         <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-2xl font-syne text-white mb-3">Order Confirmed!</motion.h1>
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-white/50 text-sm mb-2">Thank you for shopping with Annie.</motion.p>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="text-xs text-white/50/70 mb-8">We'll contact you at <span className="text-white">{form.phone}</span></motion.p>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="text-xs text-white/50/70 mb-4">We'll contact you at <span className="text-white">{form.phone}</span></motion.p>
+        {orderResult?.trackingCode && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 mb-6 inline-block">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-white/40 mb-1">Your Tracking Code</p>
+            <p className="font-syne text-lg tracking-[0.15em] text-rose">{orderResult.trackingCode}</p>
+            <p className="text-[10px] text-white/30 mt-1">Use this to track your order on the homepage</p>
+          </motion.div>
+        )}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
           <Link to="/" className="btn-rose px-8 py-3 rounded-full text-[12px] tracking-[0.12em] uppercase inline-block">Continue Shopping</Link>
+          {orderResult?.trackingCode && (
+            <Link to={`/track?code=${orderResult.trackingCode}`} className="block mt-3 text-[11px] text-white/40 hover:text-rose transition-colors tracking-wider uppercase">Track this order</Link>
+          )}
         </motion.div>
       </motion.div>
     </div>

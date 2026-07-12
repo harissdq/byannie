@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getCollections, on } from '../lib/store'
 
 const VIDEO_SRC = '/videos/enterprice/kinetic-fashion-elements.mp4'
@@ -17,6 +17,8 @@ const fadeUp = {
 export default function Hero() {
   const videoRef = useRef(null)
   const [collections, setCollections] = useState([])
+  const [trackCode, setTrackCode] = useState('')
+  const navigate = useNavigate()
 
   useEffect(() => {
     const vid = videoRef.current
@@ -153,6 +155,34 @@ export default function Hero() {
             ))}
           </motion.div>
         )}
+
+        {/* Order Tracking */}
+        <motion.div
+          custom={4}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="mt-8"
+        >
+          <p className="text-[9px] tracking-[0.2em] uppercase text-white/30 mb-2">Track your order</p>
+          <form onSubmit={(e) => { e.preventDefault(); if (trackCode.trim()) navigate(`/track?code=${trackCode.trim()}`) }} className="flex gap-2">
+            <input
+              type="text"
+              value={trackCode}
+              onChange={e => setTrackCode(e.target.value.toUpperCase())}
+              placeholder="Tracking code"
+              className="flex-1 max-w-[200px] bg-white/5 border border-white/10 rounded-full px-4 py-2 text-[10px] tracking-[0.15em] uppercase text-white placeholder:text-white/20 focus:border-rose/40 focus:outline-none transition-colors"
+              maxLength={12}
+            />
+            <button
+              type="submit"
+              disabled={!trackCode.trim()}
+              className="px-4 py-2 rounded-full border border-rose/20 text-[9px] font-syne uppercase tracking-[0.2em] text-rose/70 transition-all duration-300 hover:border-rose/40 hover:text-rose disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Track
+            </button>
+          </form>
+        </motion.div>
       </div>
     </section>
   )

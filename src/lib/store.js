@@ -437,6 +437,44 @@ export function searchProducts(query) {
   )
 }
 
+// ─── Image Compression ──────────────────────────────────
+export function compressImage(dataUrl, maxDim = 1080, quality = 0.82) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      let w = img.width, h = img.height
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h / w) * maxDim); w = maxDim }
+        else { w = Math.round((w / h) * maxDim); h = maxDim }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => resolve(dataUrl)
+    img.src = dataUrl
+  })
+}
+
+// ─── Order Tracking ──────────────────────────────────────
+export async function trackOrder(code) {
+  const res = await fetch(`/api/track/${encodeURIComponent(code)}`)
+  if (!res.ok) throw new Error('Order not found')
+  return res.json()
+}
+
+// ─── Auto-SKU Generation ─────────────────────────────────
+export async function generateAutoSKU(department, category) {
+  try {
+    const result = await api(`/api/products/auto-sku?department=${encodeURIComponent(department)}&category=${encodeURIComponent(category)}`)
+    return result.sku
+  } catch (e) {
+    return null
+  }
+}
+
 // ─── PKR Currency Formatting ────────────────────────────
 export function formatPKR(amount) {
   return 'Rs. ' + Number(amount).toLocaleString('en-PK')

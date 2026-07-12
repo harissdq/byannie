@@ -18,7 +18,12 @@ export default function ProductDetail() {
   const [showSpecs, setShowSpecs] = useState(false)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [imgLoaded, setImgLoaded] = useState(false)
+  const [mobileZoom, setMobileZoom] = useState(false)
+  const [pinchScale, setPinchScale] = useState(1)
+  const [pinchOrigin, setPinchOrigin] = useState({ x: 50, y: 50 })
   const mainImageRef = useRef(null)
+  const lastTouchDist = useRef(null)
+  const lastTouchCenter = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -45,6 +50,57 @@ export default function ProductDetail() {
     const rect = mainImageRef.current.getBoundingClientRect()
     setMagnifyPos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 })
   }, [magnify])
+
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      lastTouchDist.current = Math.hypot(dx, dy)
+      lastTouchCenter.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      }
+    }
+  }, [])
+
+  const handleTouchMove = useCallback((e) => {
+    if (e.touches.length === 2 && lastTouchDist.current !== null && mainImageRef.current) {
+      e.preventDefault()
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      const dist = Math.hypot(dx, dy)
+      const newScale = Math.min(3, Math.max(1, (dist / lastTouchDist.current) * pinchScale))
+      const rect = mainImageRef.current.getBoundingClientRect()
+      const cx = ((lastTouchCenter.current.x - rect.left) / rect.width) * 100
+      const cy = ((lastTouchCenter.current.y - rect.top) / rect.height) * 100
+      setPinchScale(newScale)
+      setPinchOrigin({ x: cx, y: cy })
+      if (newScale > 1.1) setMobileZoom(true)
+    }
+  }, [pinchScale])
+
+  const handleTouchEnd = useCallback((e) => {
+    if (e.touches.length < 2) {
+      lastTouchDist.current = null
+      lastTouchCenter.current = null
+      if (pinchScale <= 1.1) {
+        setPinchScale(1)
+        setMobileZoom(false)
+      }
+    }
+  }, [pinchScale])
+
+  const handleMobileTapZoom = useCallback(() => {
+    if (mobileZoom) {
+      setMobileZoom(false)
+      setPinchScale(1)
+    } else {
+      setMobileZoom(true)
+      setPinchScale(2.2)
+      setPinchOrigin({ x: 50, y: 50 })
+    }
+  }, [mobileZoom])
 
   const handleAddToCart = useCallback(() => {
     if (!product || adding) return
@@ -97,15 +153,35 @@ export default function ProductDetail() {
           <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="space-y-3">
             <div ref={mainImageRef}
               className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-white/5 border border-white/5 cursor-crosshair group"
-              onMouseEnter={() => setMagnify(true)} onMouseLeave={() => setMagnify(false)} onMouseMove={handleMouseMove}>
+              onMouseEnter={() => setMagnify(true)} onMouseLeave={() => setMagnify(false)} onMouseMove={handleMouseMove}
+              onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
+              onClick={handleMobileTapZoom}
+            >
               {!imgLoaded && <div className="absolute inset-0 bg-white/5 animate-pulse" />}
               <AnimatePresence mode="wait">
                 <motion.img key={selectedImage} initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.35 }} src={currentImage} alt={product.name} onLoad={() => setImgLoaded(true)} className="w-full h-full object-cover" />
+                  transition={{ duration: 0.35 }} src={currentImage} alt={product.name} onLoad={() => setImgLoaded(true)} className="w-full h-full object-cover"
+                  style={mobileZoom || pinchScale > 1 ? { transform: `scale(${pinchScale})`, transformOrigin: `${pinchOrigin.x}% ${pinchOrigin.y}%`, transition: 'transform 0.2s ease' } : undefined}
+                />
               </AnimatePresence>
-              {magnify && (
+              {magnify && !mobileZoom && (
                 <div className="absolute inset-0 pointer-events-none z-10"
                   style={{ backgroundImage: `url(${currentImage})`, backgroundPosition: `${magnifyPos.x}% ${magnifyPos.y}%`, backgroundSize: '250%', backgroundRepeat: 'no-repeat', borderRadius: 'inherit' }} />
+              )}
+              {mobileZoom && (
+                <div className="absolute bottom-3 right-3 z-20 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-[9px] text-white/70 tracking-wider uppercase">
+                  Tap to zoom out
+                </div>
+              )}
+              {!mobileZoom && (
+                <div className="absolute bottom-3 right-3 z-20 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-[9px] text-white/40 tracking-wider uppercase pointer-events-none hidden md:block">
+                  Hover to zoom
+                </div>
+              )}
+              {!mobileZoom && (
+                <div className="absolute bottom-3 right-3 z-20 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5 text-[9px] text-white/40 tracking-wider uppercase pointer-events-none md:hidden">
+                  Tap to zoom
+                </div>
               )}
               {discount > 0 && (
                 <div className="absolute top-3 left-3 z-10">
@@ -116,7 +192,7 @@ export default function ProductDetail() {
             {images.length > 1 && (
               <div className="flex gap-2.5 overflow-x-auto pb-1">
                 {images.map((img, idx) => (
-                  <button key={idx} onClick={() => { setSelectedImage(idx); setImgLoaded(false) }}
+                  <button key={idx} onClick={() => { setSelectedImage(idx); setImgLoaded(false); setMobileZoom(false); setPinchScale(1) }}
                     className={`flex-shrink-0 w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                       idx === selectedImage ? 'border-rose shadow-[0_0_10px_rgba(212,145,158,0.15)]' : 'border-white/5 opacity-50 hover:opacity-80'
                     }`}>
