@@ -136,8 +136,6 @@ export function initDirectories() {
   })
 }
 
-initDirectories()
-
 // ─── JSON File Helpers (Atomic Read/Write) ──────────────
 function readJSON(name) {
   const p = join(DATA_DIR, `${name}.json`)
@@ -666,25 +664,4 @@ export function createApp() {
   return app
 }
 
-// ─── Standalone server (production) ─────────────────────
-// Only start when run directly, not when imported as a module by vite.config.js
-const currentFile = fileURLToPath(import.meta.url)
-const isDirectRun = process.argv[1] && resolve(process.argv[1]) === currentFile
-if (isDirectRun) {
-  initDirectories()
-  const app = createApp()
-  const DIST_DIR = join(__dirname, 'dist')
-  if (existsSync(DIST_DIR)) {
-    app.use(express.static(DIST_DIR))
-    app.get('*', (req, res) => {
-      if (!req.path.startsWith('/api')) {
-        res.sendFile(join(DIST_DIR, 'index.html'))
-      }
-    })
-    console.log('✓ Serving frontend from dist/')
-  }
-  const PORT = process.env.PORT || 3001
-  app.listen(PORT, () => {
-    console.log(`✓ Annie server running on http://localhost:${PORT}`)
-  })
-}
+
