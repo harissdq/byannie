@@ -522,6 +522,7 @@ export function generateInvoice(order) {
     paymentMethod: order.paymentMethod || 'N/A',
     status: order.status || 'pending',
     orderId: order.id,
+    trackingCode: order.trackingCode || '',
     createdAt: order.createdAt,
   }
 }
@@ -576,102 +577,181 @@ export function buildInvoiceHTML(inv) {
 <html>
 <head>
 <meta charset="utf-8">
-<title>Invoice ${inv.invoiceNo}</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Receipt ${inv.invoiceNo}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; color: #222; padding: 40px; max-width: 800px; margin: 0 auto; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #D4919E; padding-bottom: 24px; }
-  .brand h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; color: #3D2B35; letter-spacing: 4px; }
-  .brand p { font-size: 11px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-  .inv-meta { text-align: right; }
-  .inv-meta h2 { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: #C57D8E; letter-spacing: 2px; }
-  .inv-meta p { font-size: 12px; color: #666; margin-top: 4px; }
-  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 36px; }
-  .party-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #C57D8E; margin-bottom: 8px; font-weight: 600; }
-  .party-name { font-size: 15px; font-weight: 500; }
-  .party-detail { font-size: 13px; color: #555; line-height: 1.6; margin-top: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  th { background: #3D2B35; color: #3D2B35; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; padding: 12px 16px; text-align: left; }
-  th:last-child, th:nth-child(3), th:nth-child(4) { text-align: right; }
-  td { padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 13px; }
-  td:last-child, td:nth-child(3), td:nth-child(4) { text-align: right; }
-  .totals { display: flex; justify-content: flex-end; margin-bottom: 40px; }
-  .totals-box { width: 280px; }
-  .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; color: #555; }
-  .totals-row.total { border-top: 2px solid #D4919E; padding-top: 12px; margin-top: 4px; font-size: 18px; font-weight: 600; color: #3D2B35; }
-  .footer { text-align: center; padding-top: 24px; border-top: 1px solid #eee; }
-  .footer p { font-size: 11px; color: #999; line-height: 1.8; }
-  .footer a { color: #C57D8E; text-decoration: none; }
-  .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  body { font-family: 'Inter', sans-serif; color: #1a1a1a; background: #fff; padding: 0; }
+  .receipt { max-width: 420px; margin: 0 auto; padding: 32px 28px; }
+
+  /* Top brand */
+  .brand { text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #D4919E; }
+  .brand-name { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; color: #3D2B35; letter-spacing: 6px; text-transform: uppercase; }
+  .brand-tag { font-size: 9px; color: #aaa; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+  .brand-contact { font-size: 10px; color: #999; margin-top: 6px; line-height: 1.6; }
+
+  /* Receipt title */
+  .title-section { text-align: center; margin-bottom: 24px; }
+  .receipt-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 500; color: #C57D8E; letter-spacing: 3px; text-transform: uppercase; }
+
+  /* Meta grid */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 24px; padding: 16px; background: #faf8f8; border-radius: 8px; }
+  .meta-item { }
+  .meta-label { font-size: 8px; text-transform: uppercase; letter-spacing: 2px; color: #C57D8E; font-weight: 600; margin-bottom: 3px; }
+  .meta-value { font-size: 12px; color: #333; font-weight: 500; line-height: 1.4; }
+  .meta-value.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 1px; }
+
+  /* Status badge */
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
   .status-pending { background: #FFF3CD; color: #856404; }
   .status-processing { background: #D1ECF1; color: #0C5460; }
   .status-shipped { background: #D4EDDA; color: #155724; }
   .status-delivered { background: #C3E6CB; color: #155724; }
-  @media print { body { padding: 20px; } }
+  .status-cancelled { background: #F8D7DA; color: #721C24; }
+
+  /* Items */
+  .items-header { font-size: 8px; text-transform: uppercase; letter-spacing: 2px; color: #C57D8E; font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+  .item-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; }
+  .item-row:last-child { border-bottom: none; }
+  .item-info { flex: 1; }
+  .item-name { font-size: 12px; font-weight: 500; color: #222; }
+  .item-detail { font-size: 10px; color: #888; margin-top: 2px; }
+  .item-qty { font-size: 11px; color: #666; text-align: center; min-width: 32px; }
+  .item-price { font-size: 12px; color: #333; text-align: right; min-width: 80px; font-weight: 500; }
+  .item-price-unit { font-size: 9px; color: #999; display: block; margin-top: 1px; }
+
+  /* Totals */
+  .totals { margin-top: 16px; padding-top: 12px; border-top: 2px solid #3D2B35; }
+  .total-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; color: #666; }
+  .total-row.grand { padding-top: 10px; margin-top: 6px; border-top: 1px solid #ddd; font-size: 16px; font-weight: 700; color: #3D2B35; font-family: 'Cormorant Garamond', serif; letter-spacing: 1px; }
+
+  /* Tracking */
+  .tracking-box { margin-top: 20px; padding: 16px; border: 1.5px solid #D4919E; border-radius: 8px; text-align: center; }
+  .tracking-label { font-size: 8px; text-transform: uppercase; letter-spacing: 2px; color: #C57D8E; font-weight: 600; margin-bottom: 4px; }
+  .tracking-code { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: #3D2B35; letter-spacing: 3px; }
+  .tracking-note { font-size: 9px; color: #999; margin-top: 6px; line-height: 1.5; }
+
+  /* Footer */
+  .footer { text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; }
+  .footer-msg { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: #C57D8E; font-style: italic; margin-bottom: 8px; }
+  .footer-contact { font-size: 9px; color: #aaa; letter-spacing: 1px; line-height: 1.6; }
+  .footer-contact a { color: #C57D8E; text-decoration: none; }
+  .footer-url { font-size: 9px; color: #C57D8E; margin-top: 6px; letter-spacing: 1px; }
+
+  /* Dashed divider */
+  .divider { border: none; border-top: 1px dashed #ddd; margin: 16px 0; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .receipt { padding: 20px 16px; }
+  }
 </style>
 </head>
 <body>
-<div class="header">
+<div class="receipt">
+  <!-- Brand -->
   <div class="brand">
-    <h1>${inv.storeName}</h1>
-    <p>${inv.storeTagline}</p>
+    <div class="brand-name">${inv.storeName}</div>
+    <div class="brand-tag">${inv.storeTagline}</div>
+    ${inv.storeAddress || inv.storeEmail || inv.storeWhatsapp ? `<div class="brand-contact">${inv.storeAddress}${inv.storeAddress && inv.storeEmail ? ' · ' : ''}${inv.storeEmail}${(inv.storeAddress || inv.storeEmail) && inv.storeWhatsapp ? ' · ' : ''}${inv.storeWhatsapp}</div>` : ''}
   </div>
-  <div class="inv-meta">
-    <h2>INVOICE</h2>
-    <p>${inv.invoiceNo}</p>
-    <p>${inv.date}</p>
-    <p style="margin-top:8px"><span class="status-badge status-${inv.status}">${inv.status}</span></p>
+
+  <!-- Title -->
+  <div class="title-section">
+    <div class="receipt-title">Delivery Receipt</div>
   </div>
-</div>
-<div class="parties">
-  <div>
-    <div class="party-label">From</div>
-    <div class="party-name">${inv.storeName}</div>
-    <div class="party-detail">${inv.storeAddress}<br>${inv.storeEmail}<br>${inv.storeWhatsapp}</div>
-  </div>
-  <div>
-    <div class="party-label">Bill To</div>
-    <div class="party-name">${inv.customer.name}</div>
-    <div class="party-detail">
-      ${inv.customer.phone}${inv.customer.email ? '<br>' + inv.customer.email : ''}
-      ${inv.customer.address ? '<br>' + inv.customer.address : ''}
+
+  <!-- Meta -->
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Receipt No</div>
+      <div class="meta-value mono">${inv.invoiceNo}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Date</div>
+      <div class="meta-value">${inv.date}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Order ID</div>
+      <div class="meta-value mono">${inv.orderId || 'N/A'}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Status</div>
+      <div class="meta-value"><span class="status-badge status-${inv.status}">${inv.status}</span></div>
     </div>
   </div>
-</div>
-<table>
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Variant</th>
-      <th>Qty</th>
-      <th>Price</th>
-      <th>Total</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${inv.items.map(i => `
-    <tr>
-      <td>${i.name}</td>
-      <td>${i.variant}</td>
-      <td>${i.quantity}</td>
-      <td>Rs. ${i.price.toLocaleString('en-PK')}</td>
-      <td>Rs. ${i.total.toLocaleString('en-PK')}</td>
-    </tr>`).join('')}
-  </tbody>
-</table>
-<div class="totals">
-  <div class="totals-box">
-    <div class="totals-row"><span>Subtotal</span><span>Rs. ${inv.subtotal.toLocaleString('en-PK')}</span></div>
-    <div class="totals-row"><span>Shipping</span><span>${inv.shipping === 0 ? 'Free' : 'Rs. ' + inv.shipping.toLocaleString('en-PK')}</span></div>
-    ${inv.tax > 0 ? `<div class="totals-row"><span>Tax</span><span>Rs. ${inv.tax.toLocaleString('en-PK')}</span></div>` : ''}
-    <div class="totals-row total"><span>Total</span><span>Rs. ${inv.total.toLocaleString('en-PK')}</span></div>
+
+  <!-- Customer -->
+  <div class="meta-grid" style="background:none; border:1px solid #eee; padding:14px 16px;">
+    <div class="meta-item" style="grid-column: span 2;">
+      <div class="meta-label">Customer Details</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label" style="color:#888;">Name</div>
+      <div class="meta-value">${inv.customer.name}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label" style="color:#888;">Phone</div>
+      <div class="meta-value">${inv.customer.phone || 'N/A'}</div>
+    </div>
+    ${inv.customer.email ? `<div class="meta-item">
+      <div class="meta-label" style="color:#888;">Email</div>
+      <div class="meta-value">${inv.customer.email}</div>
+    </div>` : ''}
+    ${inv.customer.address ? `<div class="meta-item" style="grid-column: span 2;">
+      <div class="meta-label" style="color:#888;">Address</div>
+      <div class="meta-value">${inv.customer.address}</div>
+    </div>` : ''}
   </div>
-</div>
-<div class="footer">
-  <p>Payment Method: <strong>${inv.paymentMethod}</strong></p>
-  <p style="margin-top:12px">Thank you for shopping with ${inv.storeName}!</p>
-  <p>${inv.storeEmail} · ${inv.storeWhatsapp}</p>
+
+  <hr class="divider">
+
+  <!-- Items -->
+  <div class="items-header">Items Ordered</div>
+  ${inv.items.map(i => `
+  <div class="item-row">
+    <div class="item-info">
+      <div class="item-name">${i.name}</div>
+      <div class="item-detail">${i.variant}</div>
+    </div>
+    <div class="item-qty">x${i.quantity}</div>
+    <div class="item-price">
+      Rs. ${i.total.toLocaleString('en-PK')}
+      ${i.quantity > 1 ? `<span class="item-price-unit">@ Rs. ${i.price.toLocaleString('en-PK')} each</span>` : ''}
+    </div>
+  </div>`).join('')}
+
+  <!-- Totals -->
+  <div class="totals">
+    <div class="total-row"><span>Subtotal</span><span>Rs. ${inv.subtotal.toLocaleString('en-PK')}</span></div>
+    <div class="total-row"><span>Shipping</span><span>${inv.shipping === 0 ? 'Free' : 'Rs. ' + inv.shipping.toLocaleString('en-PK')}</span></div>
+    ${inv.tax > 0 ? `<div class="total-row"><span>Tax</span><span>Rs. ${inv.tax.toLocaleString('en-PK')}</span></div>` : ''}
+    <div class="total-row grand"><span>Total</span><span>Rs. ${inv.total.toLocaleString('en-PK')}</span></div>
+  </div>
+
+  <!-- Payment -->
+  <div style="margin-top:12px; font-size:10px; color:#888; text-align:right;">
+    Payment: <strong style="color:#555;">${inv.paymentMethod}</strong>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Tracking -->
+  <div class="tracking-box">
+    <div class="tracking-label">Order Tracking Code</div>
+    <div class="tracking-code">${order.trackingCode || 'N/A'}</div>
+    <div class="tracking-note">Track your order at anniepk.com/track<br>or use the tracking section on our homepage</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-msg">Thank you for choosing ${inv.storeName}</div>
+    <div class="footer-contact">
+      ${inv.storeEmail ? `<a href="mailto:${inv.storeEmail}">${inv.storeEmail}</a>` : ''}
+      ${inv.storeEmail && inv.storeWhatsapp ? ' · ' : ''}
+      ${inv.storeWhatsapp ? `<a href="https://wa.me/${inv.storeWhatsapp.replace(/[^0-9]/g, '')}">${inv.storeWhatsapp}</a>` : ''}
+    </div>
+  </div>
 </div>
 </body>
 </html>`

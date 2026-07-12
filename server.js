@@ -242,7 +242,7 @@ export function createApp() {
     const products = readJSON('products')
     const deptCode = DEPT_PREFIXES[department] || 'XX'
     const catCode = CAT_PREFIXES[category] || 'OT'
-    const prefix = `ANN-${deptCode}-${catCode}-`
+    const prefix = `ANN${deptCode}${catCode}`
     const existing = products
       .map(p => p.sku)
       .filter(s => s && s.startsWith(prefix))

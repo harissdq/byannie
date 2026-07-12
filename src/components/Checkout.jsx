@@ -81,29 +81,45 @@ export default function Checkout() {
 
   if (completed) return (
     <div className="min-h-screen pt-24 flex items-center justify-center">
-      <motion.div initial={{ opacity: 0, scale: 0.9, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-sm mx-auto px-4">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 15 }} className="relative w-20 h-20 mx-auto mb-6">
-          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ delay: 0.4, duration: 2, repeat: Infinity }} className="absolute inset-0 rounded-full bg-white/5" />
-          <div className="absolute inset-0 rounded-full bg-white/10 border border-rose/15 flex items-center justify-center">
-            <motion.svg initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.3, duration: 0.5 }} className="w-8 h-8 text-rose" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.3, duration: 0.5 }} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      <motion.div initial={{ opacity: 0, scale: 0.9, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-md mx-auto px-4">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 15 }} className="relative w-24 h-24 mx-auto mb-6">
+          <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ delay: 0.4, duration: 2.5, repeat: Infinity }} className="absolute inset-0 rounded-full bg-white/5" />
+          <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ delay: 0.6, duration: 3, repeat: Infinity }} className="absolute inset-0 rounded-full bg-rose/5" />
+          <div className="absolute inset-0 rounded-full bg-white/10 border border-rose/20 flex items-center justify-center">
+            <motion.svg initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="w-10 h-10 text-rose" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.3, duration: 0.6 }} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
             </motion.svg>
           </div>
         </motion.div>
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-2xl font-syne text-white mb-3">Order Confirmed!</motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-white/50 text-sm mb-2">Thank you for shopping with Annie.</motion.p>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="text-xs text-white/50/70 mb-4">We'll contact you at <span className="text-white">{form.phone}</span></motion.p>
+        <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="text-3xl font-syne text-white mb-2">Thank You!</motion.h1>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-white/60 text-sm mb-6">Your order has been placed successfully</motion.p>
+
         {orderResult?.trackingCode && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 mb-6 inline-block">
-            <p className="text-[10px] tracking-[0.2em] uppercase text-white/40 mb-1">Your Tracking Code</p>
-            <p className="font-syne text-lg tracking-[0.15em] text-rose">{orderResult.trackingCode}</p>
-            <p className="text-[10px] text-white/30 mt-1">Use this to track your order on the homepage</p>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-gradient-to-b from-white/[0.06] to-transparent border border-white/10 rounded-2xl px-6 py-5 mb-5 inline-block">
+            <p className="text-[10px] tracking-[0.25em] uppercase text-white/40 mb-2">Your Tracking Code</p>
+            <p className="font-syne text-2xl tracking-[0.12em] text-rose font-semibold">{orderResult.trackingCode}</p>
+            <div className="w-12 h-px bg-rose/30 mx-auto my-3" />
+            <p className="text-[11px] text-white/50 leading-relaxed">
+              Use this code to track your order anytime<br />
+              from our homepage or visit{' '}
+              <span className="text-rose/80">/track</span>
+            </p>
           </motion.div>
         )}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-          <Link to="/" className="btn-rose px-8 py-3 rounded-full text-[12px] tracking-[0.12em] uppercase inline-block">Continue Shopping</Link>
+
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }} className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-5 py-3 mb-6 inline-flex items-start gap-2.5">
+          <svg className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <p className="text-[11px] text-amber-300/80 text-left leading-relaxed">
+            <span className="font-semibold text-amber-300">Important:</span> Please take a screenshot of this page now for your records. Save your tracking code <span className="font-mono text-amber-200">{orderResult?.trackingCode}</span> for order confirmation and delivery tracking.
+          </p>
+        </motion.div>
+
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }} className="text-xs text-white/40 mb-5">We'll contact you at <span className="text-white/70">{form.phone}</span></motion.p>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="flex flex-col items-center gap-3">
+          <Link to="/" className="btn-rose px-10 py-3 rounded-full text-[12px] tracking-[0.12em] uppercase inline-block">Continue Shopping</Link>
           {orderResult?.trackingCode && (
-            <Link to={`/track?code=${orderResult.trackingCode}`} className="block mt-3 text-[11px] text-white/40 hover:text-rose transition-colors tracking-wider uppercase">Track this order</Link>
+            <Link to={`/track?code=${orderResult.trackingCode}`} className="text-[11px] text-white/40 hover:text-rose transition-colors tracking-wider uppercase">Track this order</Link>
           )}
         </motion.div>
       </motion.div>
