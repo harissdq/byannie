@@ -1,0 +1,46 @@
+[
+  {
+    "id": "c1",
+    "name": "Fatima Ahmed",
+    "email": "fatima@example.com",
+    "phone": "0300-1234567",
+    "totalOrders": 3,
+    "totalSpent": 8997,
+    "joinDate": "2024-06-15",
+    "notes": "VIP client. Prefers bridal collections. Birthday: March 12.",
+    "lastPurchase": "2025-03-10"
+  },
+  {
+    "id": "c2",
+    "name": "Zainab Khan",
+    "email": "zainab@example.com",
+    "phone": "0333-9876543",
+    "totalOrders": 2,
+    "totalSpent": 2496,
+    "joinDate": "2024-08-22",
+    "notes": "Loves crystal and pearl items. Ships to Islamabad.",
+    "lastPurchase": "2025-03-15"
+  },
+  {
+    "id": "c3",
+    "name": "Ayesha Malik",
+    "email": "ayesha@example.com",
+    "phone": "0345-5556789",
+    "totalOrders": 5,
+    "totalSpent": 15990,
+    "joinDate": "2025-01-10",
+    "notes": "Frequent buyer. Prefers hand jewelry and payal.",
+    "lastPurchase": "2025-03-18"
+  },
+  {
+    "id": "c4",
+    "name": "Sana Tariq",
+    "email": "sana@example.com",
+    "phone": "0321-4443322",
+    "totalOrders": 4,
+    "totalSpent": 8394,
+    "joinDate": "2024-03-05",
+    "notes": "Bulk buyer. Often orders jhumkas for resale.",
+    "lastPurchase": "2025-03-22"
+  }
+]

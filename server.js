@@ -668,8 +668,8 @@ export function createApp() {
 
 // ─── Standalone server (production) ─────────────────────
 // Only start when run directly, not when imported as a module by vite.config.js
-const isDirectRun = process.argv[1] &&
-  import.meta.url === `file://${process.argv[1]}`
+const currentFile = fileURLToPath(import.meta.url)
+const isDirectRun = process.argv[1] && resolve(process.argv[1]) === currentFile
 if (isDirectRun) {
   initDirectories()
   const app = createApp()

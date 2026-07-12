@@ -1,0 +1,26 @@
+[
+  {
+    "id": "jewelry",
+    "name": "Jewelry",
+    "description": "Crafted elegance for every occasion",
+    "icon": "✦",
+    "color": "#D4919E",
+    "order": 1
+  },
+  {
+    "id": "decor",
+    "name": "Decor",
+    "description": "Transform your space",
+    "icon": "◈",
+    "color": "#C9A96E",
+    "order": 2
+  },
+  {
+    "id": "lingerie",
+    "name": "Lingerie",
+    "description": "Intimate luxury, redefined",
+    "icon": "❋",
+    "color": "#C57D8E",
+    "order": 3
+  }
+]
