@@ -1,0 +1,159 @@
+import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { getCollections, on } from '../lib/store'
+
+const VIDEO_SRC = '/videos/enterprice/kinetic-fashion-elements.mp4'
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.9, delay: i * 0.15, ease: [0.23, 1, 0.32, 1] },
+  }),
+}
+
+export default function Hero() {
+  const videoRef = useRef(null)
+  const [collections, setCollections] = useState([])
+
+  useEffect(() => {
+    const vid = videoRef.current
+    if (!vid) return
+    vid.muted = true
+    vid.currentTime = 0
+    vid.playbackRate = 1
+    vid.play().catch(() => {})
+
+    let last = performance.now()
+    let raf
+
+    const tick = (now) => {
+      const dt = (now - last) / 1000
+      last = now
+
+      if (vid.paused) { vid.play().catch(() => {}) }
+
+      const rate = vid.playbackRate
+
+      if (rate >= 0 && vid.currentTime >= vid.duration - 0.1) {
+        // Test if reverse playback is supported
+        vid.playbackRate = -1
+        vid.play().catch(() => {})
+        // If browser ignored the negative rate, force-restart forward
+        setTimeout(() => {
+          if (vid.playbackRate !== -1) {
+            vid.currentTime = 0
+            vid.playbackRate = 1
+            vid.play().catch(() => {})
+          }
+        }, 200)
+      } else if (rate < 0 && vid.currentTime <= 0.1) {
+        vid.playbackRate = 1
+        vid.currentTime = 0.1
+        vid.play().catch(() => {})
+      }
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  useEffect(() => {
+    const load = () => setCollections(getCollections().slice(0, 4))
+    load()
+    const unsub = on('collections-loaded', load)
+    return unsub
+  }, [])
+
+  return (
+    <section className="relative grid h-screen w-screen grid-cols-1 overflow-hidden md:grid-cols-[65fr_35fr]">
+      {/* Rose glow background */}
+      <div className="orange-bleed absolute inset-0 z-0 animate-glow" />
+
+      {/* Left: Video in arch-portal */}
+      <div className="relative flex items-end justify-center overflow-hidden border-r border-white/5 bg-[#050505]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_#D4919E_0%,_transparent_60%)] opacity-20" />
+
+        <div className="arch-portal group relative h-[90%] w-[85%] overflow-hidden bg-[#D4919E]">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="h-full w-full object-cover object-left"
+          >
+            <source src={VIDEO_SRC} type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-60" />
+        </div>
+
+        {/* Decorative elements */}
+        <div className="absolute left-0 top-1/2 h-px w-full -rotate-12 bg-white/10" />
+        <div className="absolute right-1/4 top-1/3 h-32 w-32 animate-float rounded-full border border-white/5" />
+      </div>
+
+      {/* Right: Content */}
+      <div className="relative z-10 flex flex-col justify-center bg-[#050505]/20 p-12 backdrop-blur-sm md:p-24">
+        <div className="mb-8">
+          <motion.h2
+            custom={1}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="font-syne text-5xl md:text-7xl leading-[0.8] uppercase tracking-tighter text-white"
+          >
+            BY
+            <br />
+            <span className="text-transparent" style={{ WebkitTextStroke: '1px #F5F5F7' }}>
+              ANNIE
+            </span>
+          </motion.h2>
+        </div>
+
+        <motion.div
+          custom={2}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-[40px] saturate-[1.8]"
+        >
+          <p className="text-sm font-light uppercase tracking-widest text-white/70">
+            Exquisite artificial jewelry meticulously crafted for the modern Pakistani woman — from bridal grandeur to everyday grace.
+          </p>
+
+          <Link
+            to="/shop"
+            className="pearl-refraction mt-10 block w-full px-10 py-4 font-syne text-[9px] uppercase tracking-[0.4em] text-center"
+          >
+            Explore Shop
+          </Link>
+        </motion.div>
+
+        {/* Collection pills */}
+        {collections.length > 0 && (
+          <motion.div
+            custom={3}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="mt-10 flex flex-wrap gap-2"
+          >
+            {collections.map((col) => (
+              <Link
+                key={col.id}
+                to="/shop"
+                className="px-4 py-2 rounded-full border border-white/10 text-[9px] font-syne uppercase tracking-[0.2em] text-white/50 transition-all duration-300 hover:border-rose/40 hover:text-rose"
+              >
+                {col.name}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </div>
+    </section>
+  )
+}

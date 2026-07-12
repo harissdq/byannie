@@ -1,0 +1,14 @@
+{
+  "jewelry": {
+    "image": "/images/products/p1-gold-necklace.jpg",
+    "updatedAt": null
+  },
+  "decor": {
+    "image": "/images/products/p25-gold-vase.jpg",
+    "updatedAt": null
+  },
+  "lingerie": {
+    "image": "/images/products/p13-bathrobe.jpg",
+    "updatedAt": null
+  }
+}
