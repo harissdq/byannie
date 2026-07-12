@@ -667,19 +667,24 @@ export function createApp() {
 }
 
 // ─── Standalone server (production) ─────────────────────
-initDirectories()
-const app = createApp()
-const DIST_DIR = join(__dirname, 'dist')
-if (existsSync(DIST_DIR)) {
-  app.use(express.static(DIST_DIR))
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(join(DIST_DIR, 'index.html'))
-    }
+// Only start when run directly, not when imported as a module by vite.config.js
+const isDirectRun = process.argv[1] &&
+  import.meta.url === `file://${process.argv[1]}`
+if (isDirectRun) {
+  initDirectories()
+  const app = createApp()
+  const DIST_DIR = join(__dirname, 'dist')
+  if (existsSync(DIST_DIR)) {
+    app.use(express.static(DIST_DIR))
+    app.get('*', (req, res) => {
+      if (!req.path.startsWith('/api')) {
+        res.sendFile(join(DIST_DIR, 'index.html'))
+      }
+    })
+    console.log('✓ Serving frontend from dist/')
+  }
+  const PORT = process.env.PORT || 3001
+  app.listen(PORT, () => {
+    console.log(`✓ Annie server running on http://localhost:${PORT}`)
   })
-  console.log('✓ Serving frontend from dist/')
 }
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
-  console.log(`✓ Annie server running on http://localhost:${PORT}`)
-})
