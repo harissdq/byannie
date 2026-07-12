@@ -667,10 +667,14 @@ export function createApp() {
 }
 
 // ─── Standalone server (production) ─────────────────────
-const isMainModule = process.argv[1] &&
-  resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1])
+const isMainModule = process.argv[1] && (
+  resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1]) ||
+  resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1] + '.js') ||
+  process.argv[1].endsWith('server.js')
+)
 
 if (isMainModule) {
+  initDirectories()
   const app = createApp()
   const DIST_DIR = join(__dirname, 'dist')
   if (existsSync(DIST_DIR)) {
