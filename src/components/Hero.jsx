@@ -31,11 +31,22 @@ export default function Hero() {
 
     let raf
     let playingForward = true
+    let reversed = false
+    let canReverse = true
     const REV_SPEED = 0.03
 
     const startForward = () => {
       playingForward = true
-      vid.play().catch(() => {})
+      vid.play().catch(() => {
+        // Mobile blocked autoplay — retry on first interaction
+        const retry = () => {
+          vid.play().catch(() => {})
+          document.removeEventListener('touchstart', retry)
+          document.removeEventListener('click', retry)
+        }
+        document.addEventListener('touchstart', retry, { once: true })
+        document.addEventListener('click', retry, { once: true })
+      })
     }
 
     const reverseTick = () => {
@@ -50,18 +61,27 @@ export default function Hero() {
     }
 
     const onEnded = () => {
-      if (playingForward) {
+      if (playingForward && canReverse) {
         playingForward = false
+        canReverse = false
         cancelAnimationFrame(raf)
         raf = requestAnimationFrame(reverseTick)
       }
     }
 
+    const onTimeUpdate = () => {
+      if (playingForward && vid.currentTime > 0.1) {
+        canReverse = true
+      }
+    }
+
     vid.addEventListener('ended', onEnded)
+    vid.addEventListener('timeupdate', onTimeUpdate)
     startForward()
 
     return () => {
       vid.removeEventListener('ended', onEnded)
+      vid.removeEventListener('timeupdate', onTimeUpdate)
       cancelAnimationFrame(raf)
     }
   }, [])

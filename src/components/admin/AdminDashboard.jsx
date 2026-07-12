@@ -185,7 +185,7 @@ export default function AdminDashboard({ onLogout }) {
   const [categoryForm, setCategoryForm] = useState({ id: '', name: '', description: '', icon: '✦', color: '#D4919E', order: 1 });
   const [productForm, setProductForm] = useState({
     name: '', department: 'jewelry', collection: 'Bridal', metal: 'Gold Plated', gemstone: 'Zircon',
-    material: '', category: 'Necklace Sets', price: '', stock: '', sku: '', weight: '', description: '',
+    material: '', category: 'Necklace Sets', price: '', stock: '', weight: '', description: '',
     featured: false, inStock: true, image: '',
   });
 
@@ -267,7 +267,7 @@ export default function AdminDashboard({ onLogout }) {
   const resetProductForm = () => {
     setProductForm({
       name: '', department: 'jewelry', collection: 'Bridal', metal: 'Gold Plated', gemstone: 'Zircon',
-      material: '', category: 'Necklace Sets', price: '', stock: '', sku: '', weight: '', description: '',
+      material: '', category: 'Necklace Sets', price: '', stock: '', weight: '', description: '',
       featured: false, inStock: true, image: '',
     });
     setImagePreview('');
@@ -280,7 +280,7 @@ export default function AdminDashboard({ onLogout }) {
       collection: product.collection || 'Bridal',
       metal: product.metal || 'Gold Plated', gemstone: product.gemstone || 'Zircon',
       material: product.material || '', category: product.category || 'Necklace Sets', price: product.price || '',
-      stock: product.stock ?? '', sku: product.sku || '', weight: product.weight || '',
+      stock: product.stock ?? '', weight: product.weight || '',
       description: product.description || '', featured: product.featured || false,
       inStock: product.inStock !== false, image: product.images?.[0] || product.image || '',
     });
@@ -821,10 +821,6 @@ export default function AdminDashboard({ onLogout }) {
                       <div>
                         <label className="block text-[10px] tracking-[0.2em] uppercase text-white/50/50 mb-1.5">Stock</label>
                         <input type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: e.target.value })} className="admin-input w-full px-3 py-2.5 rounded-lg text-sm text-white" placeholder="0" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] tracking-[0.2em] uppercase text-white/50/50 mb-1.5">SKU</label>
-                        <input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} className="admin-input w-full px-3 py-2.5 rounded-lg text-sm text-white" placeholder="SKU code" />
                       </div>
                       <div>
                         <label className="block text-[10px] tracking-[0.2em] uppercase text-white/50/50 mb-1.5">Weight</label>
