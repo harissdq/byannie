@@ -24,44 +24,55 @@ export default function Hero() {
     const vid = videoRef.current
     if (!vid) return
     vid.muted = true
-    vid.currentTime = 0
-    vid.playbackRate = 1
-    vid.play().catch(() => {})
+    vid.loop = false
+    vid.playsInline = true
 
-    let last = performance.now()
     let raf
+    let progress = 0
+    let speed = 0.0004
+    let lastTime = performance.now()
+
+    const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
 
     const tick = (now) => {
-      const dt = (now - last) / 1000
-      last = now
+      const dt = now - lastTime
+      lastTime = now
 
-      if (vid.paused) { vid.play().catch(() => {}) }
+      if (!vid.paused) vid.pause()
 
-      const rate = vid.playbackRate
+      progress += speed * dt
 
-      if (rate >= 0 && vid.currentTime >= vid.duration - 0.1) {
-        // Test if reverse playback is supported
-        vid.playbackRate = -1
-        vid.play().catch(() => {})
-        // If browser ignored the negative rate, force-restart forward
-        setTimeout(() => {
-          if (vid.playbackRate !== -1) {
-            vid.currentTime = 0
-            vid.playbackRate = 1
-            vid.play().catch(() => {})
-          }
-        }, 200)
-      } else if (rate < 0 && vid.currentTime <= 0.1) {
-        vid.playbackRate = 1
-        vid.currentTime = 0.1
-        vid.play().catch(() => {})
+      if (progress >= 1) {
+        progress = 1
+        speed = -Math.abs(speed)
+      } else if (progress <= 0) {
+        progress = 0
+        speed = Math.abs(speed)
+      }
+
+      const rawT = speed > 0 ? progress : progress
+      const t = ease(rawT)
+
+      if (vid.duration) {
+        vid.currentTime = t * vid.duration
       }
 
       raf = requestAnimationFrame(tick)
     }
 
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    vid.onloadedmetadata = () => {
+      vid.currentTime = 0
+      raf = requestAnimationFrame(tick)
+    }
+
+    if (vid.readyState >= 1) {
+      vid.currentTime = 0
+      raf = requestAnimationFrame(tick)
+    }
+
+    return () => {
+      cancelAnimationFrame(raf)
+    }
   }, [])
 
   useEffect(() => {
