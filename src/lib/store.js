@@ -739,7 +739,7 @@ export function buildInvoiceHTML(inv) {
   <!-- Tracking -->
   <div class="tracking-box">
     <div class="tracking-label">Order Tracking Code</div>
-    <div class="tracking-code">${order.trackingCode || 'N/A'}</div>
+    <div class="tracking-code">${inv.trackingCode || 'N/A'}</div>
     <div class="tracking-note">Track your order at anniepk.com/track<br>or use the tracking section on our homepage</div>
   </div>
 
