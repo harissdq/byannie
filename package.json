@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.62.2",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.1.8",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "framer-motion": "^12.9.2",
